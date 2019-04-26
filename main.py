@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-from tkinter import Tk, Canvas
+from tkinter import Tk, Canvas, ALL
 from threading import Thread
+from time import sleep
 
 class Dot:
     def __init__(self, x, y, vx=0, vy=0):
@@ -18,6 +19,7 @@ class Dots(Tk):
         self.w = Canvas(self, bg='#aaa')
         self.d = []
         self.t = Thread(target=self.physics)
+        self.g = .04
         self.closing = False
         self.w.pack()
         self.w.bind('<Button-1>', lambda ev: self.new(ev.x, ev.y))
@@ -31,9 +33,16 @@ class Dots(Tk):
     def physics(self):
         try:
             while not self.closing:
-                for e in self.d:
-                    e.update()
-                    e.render(self.w)
+                if self.d:
+                    x = sum([e.x for e in self.d]) / len(self.d)
+                    y = sum([e.y for e in self.d]) / len(self.d)
+                    self.w.delete(ALL)
+                    for e in self.d:
+                        e.vx += self.g*(x - e.x)
+                        e.vy += self.g*(y - e.y)
+                        e.update()
+                        e.render(self.w)
+                sleep(1/20)
         except:
             if not self.closing:
                 raise
