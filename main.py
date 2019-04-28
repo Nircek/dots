@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from tkinter import Tk, Canvas, ALL
+from tkinter import Tk, Canvas, ALL, BooleanVar
 from threading import Thread
 from time import sleep
 
@@ -18,11 +18,13 @@ class Dots(Tk):
         super().__init__()
         self.w = Canvas(self, bg='#aaa')
         self.d = []
-        self.t = Thread(target=self.physics)
+        self.t = Thread(target=self.physics, daemon=True)
         self.g = .04
         self.closing = False
+        self.start = BooleanVar(self)
         self.w.pack()
         self.w.bind('<Button-1>', lambda ev: self.new(ev.x, ev.y))
+        self.bind('<space>', lambda ev: self.start.set(not self.start.get()))
         self.protocol('WM_DELETE_WINDOW', self.on_close)
         self.t.start()
     def on_close(self):
@@ -38,9 +40,10 @@ class Dots(Tk):
                     y = sum([e.y for e in self.d]) / len(self.d)
                     self.w.delete(ALL)
                     for e in self.d:
-                        e.vx += self.g*(x - e.x)
-                        e.vy += self.g*(y - e.y)
-                        e.update()
+                        if self.start.get():
+                            e.vx += self.g*(x - e.x)
+                            e.vy += self.g*(y - e.y)
+                            e.update()
                         e.render(self.w)
                 sleep(1/20)
         except:
